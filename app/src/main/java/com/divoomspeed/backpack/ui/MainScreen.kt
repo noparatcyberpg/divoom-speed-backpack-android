@@ -114,13 +114,13 @@ fun MainScreen(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Connection: ${
+                        text = "Connection Status: ${
                             when (connectionState) {
                                 is BluetoothConnectionState.Connected -> "Connected"
                                 is BluetoothConnectionState.Connecting -> "Connecting..."
                                 is BluetoothConnectionState.Reconnecting -> "Reconnecting..."
-                                is BluetoothConnectionState.Error -> "Error"
-                                else -> "Disconnected"
+                                is BluetoothConnectionState.Error -> "Disconnected / Error"
+                                else -> "Disconnected (Press Connect or Start Service)"
                             }
                         }",
                         color = when (connectionState) {
@@ -130,6 +130,43 @@ fun MainScreen(
                         },
                         fontWeight = FontWeight.SemiBold
                     )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        if (connectionState is BluetoothConnectionState.Connected) {
+                            Button(
+                                onClick = { viewModel.disconnectDevice() },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                            ) {
+                                Text("Disconnect")
+                            }
+                        } else {
+                            Button(
+                                onClick = { viewModel.connectDevice() },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Connect")
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (settings.deviceAddress.isBlank()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("💡 Quick Setup Guide", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("1. Tap 'Select Device' below to choose your Divoom Bluetooth bag.")
+                        Text("2. Tap 'Connect' or 'Start Service' to start sending speed.")
+                        Text("3. Tap 'Test Display' to run Demo Mode offline without leaving your room!")
+                    }
                 }
             }
 

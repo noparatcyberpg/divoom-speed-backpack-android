@@ -112,6 +112,30 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         context.startService(intent)
     }
 
+    fun connectDevice() {
+        val address = appSettings.value.deviceAddress
+        if (address.isBlank()) {
+            DebugLogger.w("UI", "No device address saved")
+            return
+        }
+        viewModelScope.launch {
+            _connectionState.value = BluetoothConnectionState.Connecting
+            val res = transport.connect(address)
+            if (res.isSuccess) {
+                _connectionState.value = BluetoothConnectionState.Connected
+            } else {
+                _connectionState.value = BluetoothConnectionState.Error(res.exceptionOrNull()?.localizedMessage ?: "Connection failed")
+            }
+        }
+    }
+
+    fun disconnectDevice() {
+        viewModelScope.launch {
+            transport.disconnect()
+            _connectionState.value = BluetoothConnectionState.Idle
+        }
+    }
+
     fun saveSelectedDevice(address: String, name: String) {
         viewModelScope.launch {
             settingsRepository.saveSelectedDevice(address, name)
