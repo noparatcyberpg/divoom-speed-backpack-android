@@ -50,4 +50,14 @@ class LegacyDivoomProtocolEncoder : DivoomProtocolEncoder {
             Result.failure(e)
         }
     }
+
+    override fun encodeSelectChannel(channel: Byte): Result<List<ByteArray>> {
+        return try {
+            val payload = byteArrayOf(channel)
+            val packet = DivoomProtocolEncoder.buildPacket(0x45.toByte(), payload)
+            Result.success(listOf(packet))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

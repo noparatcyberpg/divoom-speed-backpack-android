@@ -14,6 +14,8 @@ interface DivoomProtocolEncoder {
 
     fun encodeClearScreen(): Result<List<ByteArray>>
 
+    fun encodeSelectChannel(channel: Byte = 0x03.toByte()): Result<List<ByteArray>>
+
     companion object {
         fun calculateChecksum(command: Byte, payload: ByteArray): Int {
             var sum = (command.toInt() and 0xFF)

@@ -142,8 +142,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val res = transport.connect(address)
             if (res.isSuccess) {
                 _connectionState.value = BluetoothConnectionState.Connected
+                // Unlock Divoom active channel to Custom Screen Mode (0x03 & 0x04)
+                switchToCustomScreenMode(0x03.toByte())
+                kotlinx.coroutines.delay(100)
+                switchToCustomScreenMode(0x04.toByte())
             } else {
                 _connectionState.value = BluetoothConnectionState.Error(res.exceptionOrNull()?.localizedMessage ?: "Connection failed")
+            }
+        }
+    }
+
+    fun switchToCustomScreenMode(channel: Byte = 0x03.toByte()) {
+        viewModelScope.launch {
+            getEncoder().encodeSelectChannel(channel).onSuccess { packets ->
+                for (p in packets) {
+                    val res = transport.send(p)
+                    if (res.isSuccess) {
+                        _packetsSentCount.value = _packetsSentCount.value + 1
+                        val hexStr = p.take(16).joinToString(" ") { "%02X".format(it) }
+                        _lastPacketHex.value = "Cmd 0x45 (Channel $channel): $hexStr"
+                        DebugLogger.i("UI", "Switched Divoom active channel to $channel")
+                    }
+                }
             }
         }
     }

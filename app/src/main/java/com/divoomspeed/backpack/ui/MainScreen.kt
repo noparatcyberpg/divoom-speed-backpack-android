@@ -235,12 +235,22 @@ fun MainScreen(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(text = "Response Bytes from Bag: $lastResponseHex", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Button(
-                        onClick = { viewModel.queryDeviceStatus() },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
-                    ) {
-                        Text("Pull Current Backpack Status (Cmd 0x46)")
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        Button(
+                            onClick = { viewModel.queryDeviceStatus() },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                        ) {
+                            Text("Pull Status (0x46)")
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = { viewModel.switchToCustomScreenMode(0x03) },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
+                        ) {
+                            Text("Unlock Mode (0x45)")
+                        }
                     }
                 }
             }

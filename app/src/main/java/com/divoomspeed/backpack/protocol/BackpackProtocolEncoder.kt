@@ -45,6 +45,11 @@ class BackpackProtocolEncoder : DivoomProtocolEncoder {
         val packet = DivoomProtocolEncoder.buildPacket(0x45.toByte(), byteArrayOf(0x00))
         return Result.success(listOf(packet))
     }
+
+    override fun encodeSelectChannel(channel: Byte): Result<List<ByteArray>> {
+        val packet = DivoomProtocolEncoder.buildPacket(0x45.toByte(), byteArrayOf(channel))
+        return Result.success(listOf(packet))
+    }
 }
 
 class CyberbagProtocolEncoder : DivoomProtocolEncoder {
@@ -79,6 +84,11 @@ class CyberbagProtocolEncoder : DivoomProtocolEncoder {
         val packet = DivoomProtocolEncoder.buildPacket(0x45.toByte(), byteArrayOf(0x00))
         return Result.success(listOf(packet))
     }
+
+    override fun encodeSelectChannel(channel: Byte): Result<List<ByteArray>> {
+        val packet = DivoomProtocolEncoder.buildPacket(0x45.toByte(), byteArrayOf(channel))
+        return Result.success(listOf(packet))
+    }
 }
 
 class UnknownProtocolEncoder : DivoomProtocolEncoder {
@@ -95,6 +105,10 @@ class UnknownProtocolEncoder : DivoomProtocolEncoder {
     }
 
     override fun encodeClearScreen(): Result<List<ByteArray>> {
+        return Result.failure(IllegalStateException("Protocol not verified for this device."))
+    }
+
+    override fun encodeSelectChannel(channel: Byte): Result<List<ByteArray>> {
         return Result.failure(IllegalStateException("Protocol not verified for this device."))
     }
 }
