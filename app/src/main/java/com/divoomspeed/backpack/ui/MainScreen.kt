@@ -211,6 +211,27 @@ fun MainScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            Row(modifier = Modifier.fillMaxWidth()) {
+                if (settings.demoMode) {
+                    Button(
+                        onClick = { viewModel.stopDemoMode() },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
+                    ) {
+                        Text("Stop Demo Mode (Currently Simulating 0-120 km/h)")
+                    }
+                } else {
+                    OutlinedButton(
+                        onClick = { viewModel.startDemoMode() },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Start Demo Simulation Mode (Test Indoors)")
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween

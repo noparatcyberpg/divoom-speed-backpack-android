@@ -101,8 +101,21 @@ class SpeedDisplayService : Service() {
             settingsRepository.settingsFlow.collectLatest { settings ->
                 currentSettings = settings
                 speedTracker.setSmoothingEnabled(settings.speedSmoothing)
-                if (settings.demoMode && transport !is FakeDivoomTransport) {
-                    transport = FakeDivoomTransport()
+                if (settings.demoMode) {
+                    if (transport !is FakeDivoomTransport) {
+                        transport = FakeDivoomTransport()
+                    }
+                    if (speedTracker !is FakeSpeedTracker) {
+                        val fake = FakeSpeedTracker()
+                        speedTracker = fake
+                        fake.start()
+                        fake.startAutoDemo(serviceScope)
+                        serviceScope.launch {
+                            fake.speedState.collect { reading ->
+                                _currentSpeed.value = reading
+                            }
+                        }
+                    }
                 }
             }
         }
