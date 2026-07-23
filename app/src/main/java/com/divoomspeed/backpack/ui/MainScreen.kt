@@ -221,23 +221,26 @@ fun MainScreen(
             // Live Sync & Bluetooth Monitor Card
             val packetsSent by viewModel.packetsSentCount.collectAsState()
             val lastPacketHex by viewModel.lastPacketHex.collectAsState()
+            val lastResponseHex by viewModel.lastResponseHex.collectAsState()
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = "📡 Backpack Display & Bluetooth Monitor", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+                    Text(text = "📡 Read & Pull Hardware Status (ดึงข้อมูลจากกระเป๋า)", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = "Total Packets Delivered: $packetsSent packets", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                    Text(text = "Last Packet Bytes: $lastPacketHex", style = MaterialTheme.typography.bodySmall)
+                    Text(text = "Total Packets Sent: $packetsSent packets", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                    Text(text = "Sent Bytes: $lastPacketHex", style = MaterialTheme.typography.bodySmall)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = "Response Bytes from Bag: $lastResponseHex", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
                         onClick = { viewModel.queryDeviceStatus() },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                     ) {
-                        Text("Query Hardware Response (Cmd 0x46)")
+                        Text("Pull Current Backpack Status (Cmd 0x46)")
                     }
                 }
             }

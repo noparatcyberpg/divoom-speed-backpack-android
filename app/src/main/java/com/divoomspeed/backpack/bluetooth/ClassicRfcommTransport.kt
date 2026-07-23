@@ -5,6 +5,10 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import com.divoomspeed.backpack.logging.DebugLogger
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,9 +30,13 @@ class ClassicRfcommTransport(
     private val _connectionState = MutableStateFlow<BluetoothConnectionState>(BluetoothConnectionState.Idle)
     override val connectionState: StateFlow<BluetoothConnectionState> = _connectionState.asStateFlow()
 
+    private val _incomingBytes = MutableStateFlow<ByteArray>(byteArrayOf())
+    val incomingBytes: StateFlow<ByteArray> = _incomingBytes.asStateFlow()
+
     private var socket: BluetoothSocket? = null
     private var outputStream: OutputStream? = null
     private var inputStream: InputStream? = null
+    private var readJob: Job? = null
     private val sendMutex = Mutex()
 
     @SuppressLint("MissingPermission")
@@ -72,6 +80,24 @@ class ClassicRfcommTransport(
             outputStream = connectedSocket.outputStream
             inputStream = connectedSocket.inputStream
 
+            readJob?.cancel()
+            readJob = CoroutineScope(Dispatchers.IO).launch {
+                val buffer = ByteArray(1024)
+                try {
+                    while (isActive && socket?.isConnected == true) {
+                        val stream = inputStream ?: break
+                        val count = stream.read(buffer)
+                        if (count > 0) {
+                            val received = buffer.copyOfRange(0, count)
+                            _incomingBytes.value = received
+                            val hexStr = received.joinToString(" ") { "%02X".format(it) }
+                            DebugLogger.i("Bluetooth", "Received $count bytes from Divoom: $hexStr")
+                        }
+                    }
+                } catch (ignored: Exception) {
+                }
+            }
+
             _connectionState.value = BluetoothConnectionState.Connected
             Result.success(Unit)
         } catch (e: Exception) {
@@ -92,6 +118,8 @@ class ClassicRfcommTransport(
 
     private fun disconnectInternal() {
         try {
+            readJob?.cancel()
+            readJob = null
             outputStream?.close()
             inputStream?.close()
             socket?.close()
