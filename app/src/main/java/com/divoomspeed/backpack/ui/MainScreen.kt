@@ -218,6 +218,32 @@ fun MainScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Live Sync & Bluetooth Monitor Card
+            val packetsSent by viewModel.packetsSentCount.collectAsState()
+            val lastPacketHex by viewModel.lastPacketHex.collectAsState()
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = "📡 Backpack Display & Bluetooth Monitor", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = "Total Packets Delivered: $packetsSent packets", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                    Text(text = "Last Packet Bytes: $lastPacketHex", style = MaterialTheme.typography.bodySmall)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = { viewModel.queryDeviceStatus() },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                    ) {
+                        Text("Query Hardware Response (Cmd 0x46)")
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Action Buttons Grid
             Row(
                 modifier = Modifier.fillMaxWidth(),

@@ -59,6 +59,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _deviceCapabilities = MutableStateFlow<DeviceCapabilities?>(null)
     val deviceCapabilities: StateFlow<DeviceCapabilities?> = _deviceCapabilities.asStateFlow()
 
+    private val _packetsSentCount = MutableStateFlow(0)
+    val packetsSentCount: StateFlow<Int> = _packetsSentCount.asStateFlow()
+
+    private val _lastPacketHex = MutableStateFlow("--")
+    val lastPacketHex: StateFlow<String> = _lastPacketHex.asStateFlow()
+
+    private val _lastResponseHex = MutableStateFlow("No response received yet")
+    val lastResponseHex: StateFlow<String> = _lastResponseHex.asStateFlow()
+
     private val renderer: SpeedImageRenderer = DefaultSpeedImageRenderer()
     private val fakeTracker = FakeSpeedTracker()
     private var transport: DivoomTransport = AutoDetectDivoomTransport(context)
@@ -206,11 +215,31 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun queryDeviceStatus() {
+        viewModelScope.launch {
+            val packet = DivoomProtocolEncoder.buildPacket(0x46.toByte(), byteArrayOf())
+            val hexStr = packet.take(20).joinToString(" ") { "%02X".format(it) }
+            _lastPacketHex.value = "Cmd 0x46 (Status Query): $hexStr"
+            val res = transport.send(packet)
+            if (res.isSuccess) {
+                _packetsSentCount.value = _packetsSentCount.value + 1
+                DebugLogger.i("UI", "Status Query packet 0x46 sent")
+            } else {
+                DebugLogger.e("UI", "Status Query packet failed")
+            }
+        }
+    }
+
     private suspend fun sendFrameToDevice(frame: PixelFrame) {
         val packetsRes = getEncoder().encodeFrame(frame)
         packetsRes.onSuccess { packets ->
             for (p in packets) {
-                transport.send(p)
+                val res = transport.send(p)
+                if (res.isSuccess) {
+                    _packetsSentCount.value = _packetsSentCount.value + 1
+                    val hexStr = p.take(16).joinToString(" ") { "%02X".format(it) } + "..."
+                    _lastPacketHex.value = hexStr
+                }
             }
             DebugLogger.i("UI", "Test packet sent successfully")
         }.onFailure { err ->
