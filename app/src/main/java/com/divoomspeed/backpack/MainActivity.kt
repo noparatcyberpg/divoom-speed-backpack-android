@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -37,7 +36,9 @@ import com.divoomspeed.backpack.ui.MainViewModel
 import com.divoomspeed.backpack.ui.SettingsScreen
 import com.divoomspeed.backpack.ui.TestDisplayScreen
 
-class MainActivity : ComponentActivity() {
+import androidx.fragment.app.FragmentActivity
+
+class MainActivity : FragmentActivity() {
 
     private val viewModel: MainViewModel by viewModels()
 
