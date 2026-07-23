@@ -21,9 +21,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.RadioButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -45,6 +48,7 @@ fun MainScreen(
     val speedReading by viewModel.currentSpeedReading.collectAsState()
     val connectionState by viewModel.connectionState.collectAsState()
     val previewFrame by viewModel.previewFrame.collectAsState()
+    val scope = rememberCoroutineScope()
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -149,6 +153,32 @@ fun MainScreen(
                             ) {
                                 Text("Connect")
                             }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Protocol Selection Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = "Divoom Protocol Model:", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    listOf(
+                        "LEGACY_PIXOO" to "Pixoo Backpack (Classic RFCOMM)",
+                        "BACKPACK_M" to "Backpack M (Modern BLE/RFCOMM)",
+                        "CYBERBAG" to "Cyberbag (Extended Header)"
+                    ).forEach { (key, label) ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(
+                                selected = settings.protocolType == key,
+                                onClick = { scope.launch { viewModel.settingsRepository.updateProtocolType(key) } }
+                            )
+                            Text(label, style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }
