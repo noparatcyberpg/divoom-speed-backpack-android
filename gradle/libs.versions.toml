@@ -8,7 +8,7 @@ espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.4"
 activityCompose = "1.9.1"
 composeBom = "2024.06.00"
-playServicesLocation = "21.3.0"
+playServicesLocation = "21.4.0"
 datastorePreferences = "1.1.1"
 fragmentKtx = "1.8.1"
 
