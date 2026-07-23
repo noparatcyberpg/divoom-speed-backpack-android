@@ -1,0 +1,48 @@
+name: Bug Report
+description: Create a report to help us improve Divoom Speed Backpack
+title: "[BUG]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Info
+      description: Include Android version, Phone model, Divoom device model, Bluetooth type.
+      placeholder: |
+        - Android Version: 14
+        - Phone Model: Google Pixel 7
+        - Divoom Model: Pixoo Backpack / Cyberbag
+        - Screen Resolution: 16x16 / 64x64
+        - Connection Mode: Classic RFCOMM / BLE GATT
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How did the issue happen?
+      placeholder: |
+        1. Select Bluetooth device 'Divoom Backpack'
+        2. Press 'Connect'
+        3. Press 'Start Realtime'
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Debug Logs
+      description: Paste anonymized debug logs exported from the app (MAC addresses masked).

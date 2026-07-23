@@ -1,0 +1,35 @@
+name: Device Support Request
+description: Request protocol or display support for a new Divoom model
+title: "[DEVICE]: "
+labels: ["device-support"]
+body:
+  - type: input
+    id: device_name
+    attributes:
+      label: Exact Device Name
+      placeholder: e.g. Divoom Pixoo Backpack M / Divoom Cyberbag
+    validations:
+      required: true
+  - type: input
+    id: bluetooth_name
+    attributes:
+      label: Bluetooth Advertised Name
+      placeholder: e.g. Pixoo-Backpack-A123
+    validations:
+      required: true
+  - type: dropdown
+    id: bluetooth_mode
+    attributes:
+      label: Bluetooth Mode
+      options:
+        - Classic RFCOMM
+        - BLE GATT
+        - Dual Mode
+        - Unknown
+    validations:
+      required: true
+  - type: textarea
+    id: inspector_output
+    attributes:
+      label: Bluetooth Inspector Output
+      description: Copy details from the Bluetooth Inspector screen inside the app.
