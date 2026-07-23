@@ -20,6 +20,7 @@ import com.divoomspeed.backpack.bluetooth.DivoomTransport
 import com.divoomspeed.backpack.bluetooth.FakeDivoomTransport
 import com.divoomspeed.backpack.data.AppSettings
 import com.divoomspeed.backpack.data.SettingsRepository
+import com.divoomspeed.backpack.location.FakeSpeedTracker
 import com.divoomspeed.backpack.location.FusedSpeedTracker
 import com.divoomspeed.backpack.location.SpeedReading
 import com.divoomspeed.backpack.location.SpeedTracker
