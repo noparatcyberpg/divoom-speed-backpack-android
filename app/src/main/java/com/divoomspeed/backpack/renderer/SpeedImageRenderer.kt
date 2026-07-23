@@ -1,65 +1,67 @@
 package com.divoomspeed.backpack.renderer
 
-import android.graphics.Color
-
 interface SpeedImageRenderer {
     fun render(speedKmh: Int, config: DisplayConfig): PixelFrame
 }
 
 class DefaultSpeedImageRenderer : SpeedImageRenderer {
 
+    companion object {
+        const val COLOR_BLACK = 0xFF000000.toInt()
+        const val COLOR_GREEN = 0xFF00FF40.toInt()
+        const val COLOR_YELLOW = 0xFFFFEB00.toInt()
+        const val COLOR_ORANGE = 0xFFFF8000.toInt()
+        const val COLOR_RED = 0xFFFF2020.toInt()
+        const val COLOR_WHITE = 0xFFFFFFFF.toInt()
+        const val COLOR_DARK_GRAY = 0xFF444444.toInt()
+
+        fun rgb(r: Int, g: Int, b: Int): Int {
+            return (0xFF shl 24) or ((r and 0xFF) shl 16) or ((g and 0xFF) shl 8) or (b and 0xFF)
+        }
+    }
+
     override fun render(speedKmh: Int, config: DisplayConfig): PixelFrame {
         val baseWidth = 16
         val baseHeight = 16
-        val rawPixels = IntArray(baseWidth * baseHeight) { Color.BLACK }
+        val rawPixels = IntArray(baseWidth * baseHeight) { COLOR_BLACK }
 
         val textColor = getSpeedColor(speedKmh, config.colorMode)
         val speedStr = speedKmh.coerceAtLeast(0).toString()
 
         if (speedStr.length <= 2) {
-            // Draw 2 digits using 5x7 Font
             val d1 = speedStr.getOrNull(0) ?: '0'
             val d2 = speedStr.getOrNull(1)
 
             if (d2 == null) {
-                // Single digit centered
                 drawGlyph(rawPixels, baseWidth, baseHeight, PixelFont.DIGIT_5X7[d1], startX = 5, startY = 2, textColor)
             } else {
-                // Two digits side-by-side (5px + 1px gap + 5px = 11px wide, starting at x=2)
                 drawGlyph(rawPixels, baseWidth, baseHeight, PixelFont.DIGIT_5X7[d1], startX = 2, startY = 2, textColor)
                 drawGlyph(rawPixels, baseWidth, baseHeight, PixelFont.DIGIT_5X7[d2], startX = 8, startY = 2, textColor)
             }
 
-            // Draw "KMH" unit at bottom (y=11)
             if (config.showUnit) {
-                val unitColor = Color.DKGRAY
-                drawGlyph(rawPixels, baseWidth, baseHeight, PixelFont.UNIT_KMH_3X3['K'], startX = 2, startY = 11, unitColor)
-                drawGlyph(rawPixels, baseWidth, baseHeight, PixelFont.UNIT_KMH_3X3['M'], startX = 6, startY = 11, unitColor)
-                drawGlyph(rawPixels, baseWidth, baseHeight, PixelFont.UNIT_KMH_3X3['H'], startX = 10, startY = 11, unitColor)
+                drawGlyph(rawPixels, baseWidth, baseHeight, PixelFont.UNIT_KMH_3X3['K'], startX = 2, startY = 11, COLOR_DARK_GRAY)
+                drawGlyph(rawPixels, baseWidth, baseHeight, PixelFont.UNIT_KMH_3X3['M'], startX = 6, startY = 11, COLOR_DARK_GRAY)
+                drawGlyph(rawPixels, baseWidth, baseHeight, PixelFont.UNIT_KMH_3X3['H'], startX = 10, startY = 11, COLOR_DARK_GRAY)
             }
         } else {
-            // 3 digits (100-199) using 3x5 compact Font
             val d1 = speedStr[0]
             val d2 = speedStr[1]
             val d3 = speedStr[2]
 
-            // 3px + 1px gap + 3px + 1px gap + 3px = 11px wide (starting x=2, y=3)
             drawGlyph(rawPixels, baseWidth, baseHeight, PixelFont.DIGIT_3X5[d1], startX = 2, startY = 3, textColor)
             drawGlyph(rawPixels, baseWidth, baseHeight, PixelFont.DIGIT_3X5[d2], startX = 6, startY = 3, textColor)
             drawGlyph(rawPixels, baseWidth, baseHeight, PixelFont.DIGIT_3X5[d3], startX = 10, startY = 3, textColor)
 
             if (config.showUnit) {
-                val unitColor = Color.DKGRAY
-                drawGlyph(rawPixels, baseWidth, baseHeight, PixelFont.UNIT_KMH_3X3['K'], startX = 2, startY = 11, unitColor)
-                drawGlyph(rawPixels, baseWidth, baseHeight, PixelFont.UNIT_KMH_3X3['M'], startX = 6, startY = 11, unitColor)
-                drawGlyph(rawPixels, baseWidth, baseHeight, PixelFont.UNIT_KMH_3X3['H'], startX = 10, startY = 11, unitColor)
+                drawGlyph(rawPixels, baseWidth, baseHeight, PixelFont.UNIT_KMH_3X3['K'], startX = 2, startY = 11, COLOR_DARK_GRAY)
+                drawGlyph(rawPixels, baseWidth, baseHeight, PixelFont.UNIT_KMH_3X3['M'], startX = 6, startY = 11, COLOR_DARK_GRAY)
+                drawGlyph(rawPixels, baseWidth, baseHeight, PixelFont.UNIT_KMH_3X3['H'], startX = 10, startY = 11, COLOR_DARK_GRAY)
             }
         }
 
-        // Apply rotation
         val rotatedPixels = applyRotation(rawPixels, baseWidth, baseHeight, config.orientation)
 
-        // Scale to target resolution if width/height > 16
         return if (config.width != baseWidth || config.height != baseHeight) {
             scalePixelFrame(PixelFrame(baseWidth, baseHeight, rotatedPixels), config.width, config.height)
         } else {
@@ -94,18 +96,15 @@ class DefaultSpeedImageRenderer : SpeedImageRenderer {
     fun getSpeedColor(speedKmh: Int, mode: SpeedColorMode): Int {
         return when (mode) {
             SpeedColorMode.SPEED_BASED -> when {
-                speedKmh <= 30 -> Color.rgb(0, 255, 64)   // Green
-                speedKmh <= 60 -> Color.rgb(255, 235, 0)  // Yellow
-                speedKmh <= 90 -> Color.rgb(255, 128, 0)  // Orange
-                else -> Color.rgb(255, 32, 32)            // Red
+                speedKmh <= 30 -> COLOR_GREEN
+                speedKmh <= 60 -> COLOR_YELLOW
+                speedKmh <= 90 -> COLOR_ORANGE
+                else -> COLOR_RED
             }
-            SpeedColorMode.MONOCHROME_GREEN -> Color.GREEN
-            SpeedColorMode.MONOCHROME_WHITE -> Color.WHITE
-            SpeedColorMode.RAINBOW -> {
-                val hue = (speedKmh * 3) % 360
-                Color.HSVToColor(floatArrayOf(hue.toFloat(), 1f, 1f))
-            }
-            SpeedColorMode.HIGH_CONTRAST -> Color.YELLOW
+            SpeedColorMode.MONOCHROME_GREEN -> COLOR_GREEN
+            SpeedColorMode.MONOCHROME_WHITE -> COLOR_WHITE
+            SpeedColorMode.RAINBOW -> COLOR_YELLOW
+            SpeedColorMode.HIGH_CONTRAST -> COLOR_YELLOW
         }
     }
 

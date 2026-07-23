@@ -14,16 +14,16 @@ class SpeedImageRendererTest {
     @Test
     fun testColorModeThresholds() {
         val green = renderer.getSpeedColor(25, SpeedColorMode.SPEED_BASED)
-        assertNotNull(green)
+        assertEquals(DefaultSpeedImageRenderer.COLOR_GREEN, green)
 
         val yellow = renderer.getSpeedColor(50, SpeedColorMode.SPEED_BASED)
-        assertNotNull(yellow)
+        assertEquals(DefaultSpeedImageRenderer.COLOR_YELLOW, yellow)
 
         val orange = renderer.getSpeedColor(75, SpeedColorMode.SPEED_BASED)
-        assertNotNull(orange)
+        assertEquals(DefaultSpeedImageRenderer.COLOR_ORANGE, orange)
 
         val red = renderer.getSpeedColor(110, SpeedColorMode.SPEED_BASED)
-        assertNotNull(red)
+        assertEquals(DefaultSpeedImageRenderer.COLOR_RED, red)
     }
 
     @Test
