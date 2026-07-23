@@ -113,10 +113,19 @@ class ClassicRfcommTransport(
             }
 
             try {
-                stream.write(data)
-                stream.flush()
+                val chunkSize = 256
+                var offset = 0
+                while (offset < data.size) {
+                    val len = Math.min(chunkSize, data.size - offset)
+                    stream.write(data, offset, len)
+                    stream.flush()
+                    offset += len
+                    if (offset < data.size) {
+                        Thread.sleep(15)
+                    }
+                }
                 val hexStr = data.joinToString(" ") { "%02X".format(it) }
-                DebugLogger.d("Bluetooth", "Sent ${data.size} bytes via RFCOMM", hexStr)
+                DebugLogger.d("Bluetooth", "Sent ${data.size} bytes via RFCOMM in chunks", hexStr)
                 Result.success(Unit)
             } catch (e: Exception) {
                 val err = "RFCOMM Send error: ${e.localizedMessage}"

@@ -31,7 +31,8 @@ data class AppSettings(
     val bleWriteCharacteristic: String = "0000ffe1-0000-1000-8000-00805f9b34fb",
     val bleWriteWithoutResponse: Boolean = true,
     val debugMode: Boolean = false,
-    val demoMode: Boolean = false
+    val demoMode: Boolean = false,
+    val protocolType: String = "LEGACY_PIXOO"
 )
 
 class SettingsRepository(private val context: Context) {
@@ -54,6 +55,7 @@ class SettingsRepository(private val context: Context) {
         val BLE_WRITE_WITHOUT_RESPONSE = booleanPreferencesKey("ble_write_without_response")
         val DEBUG_MODE = booleanPreferencesKey("debug_mode")
         val DEMO_MODE = booleanPreferencesKey("demo_mode")
+        val PROTOCOL_TYPE = stringPreferencesKey("protocol_type")
     }
 
     val settingsFlow: Flow<AppSettings> = context.dataStore.data.map { prefs ->
@@ -74,7 +76,8 @@ class SettingsRepository(private val context: Context) {
             bleWriteCharacteristic = prefs[Keys.BLE_WRITE_CHARACTERISTIC] ?: "0000ffe1-0000-1000-8000-00805f9b34fb",
             bleWriteWithoutResponse = prefs[Keys.BLE_WRITE_WITHOUT_RESPONSE] ?: true,
             debugMode = prefs[Keys.DEBUG_MODE] ?: false,
-            demoMode = prefs[Keys.DEMO_MODE] ?: false
+            demoMode = prefs[Keys.DEMO_MODE] ?: false,
+            protocolType = prefs[Keys.PROTOCOL_TYPE] ?: "LEGACY_PIXOO"
         )
     }
 
@@ -157,6 +160,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun updateDemoMode(enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[Keys.DEMO_MODE] = enabled
+        }
+    }
+
+    suspend fun updateProtocolType(protocol: String) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.PROTOCOL_TYPE] = protocol
         }
     }
 }

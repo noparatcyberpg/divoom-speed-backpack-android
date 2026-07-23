@@ -16,6 +16,9 @@ import com.divoomspeed.backpack.location.FakeSpeedTracker
 import com.divoomspeed.backpack.location.SpeedReading
 import com.divoomspeed.backpack.logging.DebugLogEntry
 import com.divoomspeed.backpack.logging.DebugLogger
+import com.divoomspeed.backpack.protocol.BackpackProtocolEncoder
+import com.divoomspeed.backpack.protocol.CyberbagProtocolEncoder
+import com.divoomspeed.backpack.protocol.DivoomProtocolEncoder
 import com.divoomspeed.backpack.protocol.LegacyDivoomProtocolEncoder
 import com.divoomspeed.backpack.renderer.DefaultSpeedImageRenderer
 import com.divoomspeed.backpack.renderer.DisplayConfig
@@ -59,7 +62,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val renderer: SpeedImageRenderer = DefaultSpeedImageRenderer()
     private val fakeTracker = FakeSpeedTracker()
     private var transport: DivoomTransport = AutoDetectDivoomTransport(context)
-    private val encoder = LegacyDivoomProtocolEncoder()
+
+    private fun getEncoder(): DivoomProtocolEncoder {
+        return when (appSettings.value.protocolType) {
+            "BACKPACK_M" -> BackpackProtocolEncoder()
+            "CYBERBAG" -> CyberbagProtocolEncoder()
+            else -> LegacyDivoomProtocolEncoder()
+        }
+    }
 
     init {
         // Update pixel preview whenever speed or settings change
@@ -176,7 +186,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun sendClearScreen() {
         viewModelScope.launch {
-            encoder.encodeClearScreen().onSuccess { packets ->
+            getEncoder().encodeClearScreen().onSuccess { packets ->
                 for (packet in packets) {
                     transport.send(packet)
                 }
@@ -197,7 +207,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private suspend fun sendFrameToDevice(frame: PixelFrame) {
-        val packetsRes = encoder.encodeFrame(frame)
+        val packetsRes = getEncoder().encodeFrame(frame)
         packetsRes.onSuccess { packets ->
             for (p in packets) {
                 transport.send(p)

@@ -25,6 +25,8 @@ import com.divoomspeed.backpack.location.FusedSpeedTracker
 import com.divoomspeed.backpack.location.SpeedReading
 import com.divoomspeed.backpack.location.SpeedTracker
 import com.divoomspeed.backpack.logging.DebugLogger
+import com.divoomspeed.backpack.protocol.BackpackProtocolEncoder
+import com.divoomspeed.backpack.protocol.CyberbagProtocolEncoder
 import com.divoomspeed.backpack.protocol.DivoomProtocolEncoder
 import com.divoomspeed.backpack.protocol.LegacyDivoomProtocolEncoder
 import com.divoomspeed.backpack.renderer.DefaultSpeedImageRenderer
@@ -102,6 +104,11 @@ class SpeedDisplayService : Service() {
             settingsRepository.settingsFlow.collectLatest { settings ->
                 currentSettings = settings
                 speedTracker.setSmoothingEnabled(settings.speedSmoothing)
+                encoder = when (settings.protocolType) {
+                    "BACKPACK_M" -> BackpackProtocolEncoder()
+                    "CYBERBAG" -> CyberbagProtocolEncoder()
+                    else -> LegacyDivoomProtocolEncoder()
+                }
                 if (settings.demoMode) {
                     if (transport !is FakeDivoomTransport) {
                         transport = FakeDivoomTransport()

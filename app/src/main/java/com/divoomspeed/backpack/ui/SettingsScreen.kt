@@ -82,6 +82,27 @@ fun SettingsScreen(
                 }
             }
 
+            // Divoom Protocol Model Selection
+            Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = "Divoom Protocol Encoding Model:", fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    listOf(
+                        "LEGACY_PIXOO" to "Pixoo Backpack (Classic RFCOMM)",
+                        "BACKPACK_M" to "Backpack M (Modern BLE/RFCOMM)",
+                        "CYBERBAG" to "Cyberbag (Extended Header)"
+                    ).forEach { (key, label) ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            androidx.compose.material3.RadioButton(
+                                selected = settings.protocolType == key,
+                                onClick = { scope.launch { viewModel.settingsRepository.updateProtocolType(key) } }
+                            )
+                            Text(label, style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                }
+            }
+
             // Display Rotation
             Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                 Column(modifier = Modifier.padding(16.dp)) {
