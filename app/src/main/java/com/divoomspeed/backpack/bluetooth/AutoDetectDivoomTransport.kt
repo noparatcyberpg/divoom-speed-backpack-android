@@ -43,8 +43,23 @@ class AutoDetectDivoomTransport(
                 ClassicRfcommTransport(bluetoothAdapter)
             }
             BluetoothDevice.DEVICE_TYPE_DUAL -> {
-                DebugLogger.i("Bluetooth", "Dual mode device detected. Trying RFCOMM first...")
-                ClassicRfcommTransport(bluetoothAdapter)
+                DebugLogger.i("Bluetooth", "Dual mode device detected (Backpack M). Trying RFCOMM first...")
+                val classic = ClassicRfcommTransport(bluetoothAdapter)
+                val classicRes = classic.connect(deviceAddress)
+                if (classicRes.isSuccess) {
+                    DebugLogger.i("Bluetooth", "RFCOMM connected successfully for Dual mode device")
+                    classic
+                } else {
+                    DebugLogger.w("Bluetooth", "RFCOMM failed for Dual mode device. Trying BLE GATT Transport...")
+                    val ble = BleGattTransport(context, bluetoothAdapter)
+                    val bleRes = ble.connect(deviceAddress)
+                    if (bleRes.isSuccess) {
+                        DebugLogger.i("Bluetooth", "BLE GATT connected successfully for Dual mode device")
+                        ble
+                    } else {
+                        classic
+                    }
+                }
             }
             else -> {
                 DebugLogger.w("Bluetooth", "Unknown device type ($deviceType). Defaulting to Classic RFCOMM...")
@@ -53,11 +68,12 @@ class AutoDetectDivoomTransport(
         }
 
         activeTransport = transport
-
-        // Observe sub-transport connection state
-        val res = transport.connect(deviceAddress)
         _connectionState.value = transport.connectionState.value
-        return res
+        return if (transport.connectionState.value is BluetoothConnectionState.Connected) {
+            Result.success(Unit)
+        } else {
+            Result.failure(IllegalStateException("Connection failed for all transport modes"))
+        }
     }
 
     override suspend fun disconnect() {
