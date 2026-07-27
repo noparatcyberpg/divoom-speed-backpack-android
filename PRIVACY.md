@@ -1,21 +1,20 @@
-# Privacy Policy - Divoom Speed Backpack
+# Privacy Policy - Divoom Navigation Arrow
 
-**Divoom Speed Backpack** respects user privacy and handles location and Bluetooth data strictly on-device.
+**Divoom Navigation Arrow** processes navigation, motion, and Bluetooth data on the Android device.
 
-## Data Collection & Usage
+## Data usage
 
-1. **GPS Location Data**:
-   - Location data is processed exclusively on your device to calculate real-time speed in kilometers per hour (`km/h`).
-   - Location coordinates (Latitude/Longitude) are **never** recorded, stored to disk, or sent to external servers.
-   - The app does not collect location history or location tracking analytics.
+1. **Google Maps navigation notifications**
+   - Notification access is used to recognize active Google Maps maneuver instructions and distance.
+   - Notification contents are processed on-device and are not uploaded by the app.
 
-2. **Bluetooth Connection Data**:
-   - Device MAC addresses and Bluetooth connection configurations are saved locally in Android DataStore Preferences to allow automatic re-connection.
-   - MAC addresses shown in shared debug logs are automatically anonymized (`AA:BB:CC:**:**:FF`).
+2. **Location and motion**
+   - Location updates are used on-device to determine whether the vehicle is moving and to pace animations.
+   - Speed and coordinates are not displayed, saved to disk, or sent to an external server.
 
-3. **Analytics & Tracking**:
-   - No third-party tracking, telemetry, or remote telemetry SDKs are included in this application.
+3. **Bluetooth**
+   - Bluetooth access is used to discover, connect to, and send pixel frames to the selected Divoom backpack.
+   - The selected device address may be retained locally for automatic reconnection.
 
-## Excluded Identifiers
-
-In accordance with internal global privacy directives, all test data, queries, and diagnostics automatically filter out specified internal test accounts (`trindd@outlook.co.th` and `0962987415`).
+4. **Analytics**
+   - The app contains no advertising, analytics, or third-party tracking SDK.

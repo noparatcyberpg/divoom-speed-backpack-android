@@ -1,42 +1,64 @@
-# Divoom Bluetooth Protocol Specification & Notes
+# PROTOCOL_NOTES
 
-> [!WARNING]
-> The protocol implementations in this application are derived from community reverse-engineering efforts and reference repositories. Divoom devices are unofficial implementations and protocol framing may vary across device revisions.
+## Reference
 
-## Reference Sources
+- Repository: https://github.com/orionparrott/divoom-protocol
+- Commit: `f9b661f8e06a6d40be91c800fed656c7402bd2ac` (`f9b661f chore: add PyPI/license/python version badges`)
+- PyPI package: `divoom-protocol`
+- Target family: Divoom Backpack M / TimeBox-Evo-audio (Anyka 105xE / AkOS)
+- Status: community reverse-engineered — **not** Official Divoom API
 
-* **hass-divoom**: [d03n3rfr1tz3/hass-divoom](https://github.com/d03n3rfr1tz3/hass-divoom)
-  - Referenced file: `custom_components/divoom/devices/backpack.txt`
-* **divoom-python**: [DavidVentura/divoom](https://github.com/DavidVentura/divoom)
-* **divoom-protocol**: Python community package
+## BLE UUIDs (from reference `client.py`, confirmed via iOS HCI capture)
 
-## Packet Structure (Legacy & Backpack RFCOMM / BLE)
+| Role | UUID |
+|------|------|
+| UART Service | `49535343-fe7d-4ae5-8fa9-9fafd205e455` |
+| Write characteristic | `49535343-8841-43f4-a8d4-ecbe34729bb3` |
+| Notify characteristic | `49535343-1e4d-4bd9-ba61-23c647249616` |
 
-```text
-[START_BYTE 0x01] [LENGTH_LE 2-bytes] [COMMAND_BYTE] [PAYLOAD ...] [CHECKSUM_LE 2-bytes] [END_BYTE 0x02]
+Do **not** use the `ACA3` write characteristic for display on this generation (advertised but inert).
+
+## Envelope (`packet.py`)
+
+```
+FE EF AA 55 | content_len_lo content_len_hi | seq_hi seq_lo 00 00 00 | payload | crc_lo crc_hi
 ```
 
-### Protocol Mechanics
-1. **Start Byte**: `0x01`
-2. **Length**: 2 bytes (Little Endian), calculated as `Payload Length + 2 (Checksum) + 1 (Cmd)`
-3. **Command IDs**:
-   - `0x44`: Set Static Image / Matrix Data
-   - `0x74`: Set Brightness
-   - `0x45`: Clear Screen / Reset Display Mode
-4. **Checksum Calculation**:
-   - Sum of all payload bytes + command byte
-   - 16-bit integer (Little Endian)
-5. **Byte Escaping (CRC/Payload Escaping)**:
-   - If payload byte equals `0x01`, `0x02`, or `0x03`, it is escaped according to Divoom frame rules:
-     - `0x01` -> `0x03 0x04`
-     - `0x02` -> `0x03 0x05`
-     - `0x03` -> `0x03 0x06`
-6. **End Byte**: `0x02`
+- `content_len` = 2 (seq) + 3 (zeros) + len(payload) + 2 (crc)
+- CRC = uint16 sum of (len_lo + len_hi + all content_data bytes), little-endian
 
-## Verification Status
+## Session keystone (`session.py`)
 
-| Device Model | Bluetooth Mode | Default Service / UUID | Verification Status |
-| :--- | :--- | :--- | :--- |
-| Pixoo Backpack (Original) | Classic RFCOMM | Channel 1 / 00001101-0000-1000-8000-00805F9B34FB | Community Protocol Implemented |
-| Pixoo Backpack M | BLE / RFCOMM | Custom Service / 0000ffe0-0000-1000-8000-00805f9b34fb | Needs Hardware Verification |
-| Divoom Cyberbag | Dual Mode | Auto-Detect | Needs Hardware Verification |
+1. First command = JSON SetUTC with seq `0x0001`
+2. Immediately bump seq to `0x0101` (high byte = session token)
+3. Without this jump, GATT ACKs succeed but display commands are ignored
+
+## Static image (`encoder.py` + `commands.static_image`)
+
+1. Preamble: `bd 31 SLOT 01` then `9f CONFIRM` (CONFIRM = SLOT + 0xB1; SLOT += 3 per image)
+2. Inner `0x44` payload with mystery bytes `F4 01 00`, palette RGB, LSB-first indices (no bit-reversal)
+3. Wrap in FE EF AA 55 envelope
+4. App-layer BLE chunking at **138 bytes** (iOS match), independent of MTU
+
+## Solid color shortcut
+
+`45 01 RR GG BB BRI 00 01` (Lighting channel) — used optionally for solid fills; Pixel Art uses `0x44`.
+
+## Init pacing
+
+~60 ms between init commands; ~1 s pause before `deviceInfo`; end with `bd 2f 02` then `0x31` **once** (re-sending disconnects).
+
+## Android port notes
+
+- All bytes treated as unsigned via `and 0xFF`
+- Little-endian length/CRC fields
+- Kotlin class: `ModernBackpackBleProtocol` (not named “Verified” until physical display confirmed)
+- Old Classic `01…02` protocol retained only as historical dead code path removed from UI
+
+## Not used automatically
+
+- DavidVentura/divoom
+- d03n3rfr1tz3/hass-divoom
+- RomRider/node-divoom-timebox-evo Classic SPP framing
+
+(AA inner frame concepts from node-divoom are used upstream for *animation* uploads only; this round focuses on static image + lighting.)

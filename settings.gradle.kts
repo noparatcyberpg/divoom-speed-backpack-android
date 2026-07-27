@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "DivoomSpeedBackpack"
+rootProject.name = "DivoomNavigationArrow"
 include(":app")

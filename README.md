@@ -1,56 +1,127 @@
-# Divoom Speed Backpack Android App
+# Divoom Navigation Arrow (Native Android Kotlin App)
 
-[![Android CI](https://github.com/noparatcyberpg/divoom-speed-backpack-android/actions/workflows/android-ci.yml/badge.svg)](https://github.com/noparatcyberpg/divoom-speed-backpack-android/actions/workflows/android-ci.yml)
-[![License: MIT](https://img.shields.org/badge/License-MIT-yellow.svg)](LICENSE)
+## Current navigation features
 
-A native Android application written in Kotlin to stream real-time GPS speed directly to **Divoom Pixoo Backpack**, **Backpack M**, and **Divoom Cyberbag** displays via Bluetooth (Classic RFCOMM / BLE GATT).
+- Reads active turn instructions from Google Maps notifications.
+- Shows left/right arrows only when the turn is 100 meters away or closer.
+- Keeps straight, U-turn, roundabout, and destination symbols available.
+- Adjusts animation pacing from on-device GPS motion without displaying speed.
+- Shows randomized cute pixel cartoons while stopped or in traffic.
+- Automatically reconnects to the selected Divoom backpack.
 
-![App Mockup](https://via.placeholder.com/800x400.png?text=Divoom+Speed+Backpack+App)
+แอปพลิเคชัน Android แบบ Native Kotlin สำหรับเชื่อมต่อกระเป๋า **Divoom Pixoo Backpack** (จอ RGB 16×16) ผ่าน Bluetooth เพื่อแสดงผลลูกศรนำทาง Pixel Art
 
-## Features
+---
 
-- 🚴 **Real-time Speed Streaming**: Reads GPS speed and converts m/s to km/h with configurable 1s - 2s update intervals.
-- 🎨 **Matrix Pixel Font Renderer**: Generates crisp pixel art digits (0-99 in large matrix font, 100-199 in compact matrix font) and `KMH` indicators for 16x16, 32x32, and 64x64 pixel matrices.
-- 🌈 **Speed-Based Color Thresholds**:
-  - `0 - 30 km/h`: Vibrant Green
-  - `31 - 60 km/h`: Energetic Yellow
-  - `61 - 90 km/h`: Warning Orange
-  - `> 90 km/h`: High-Speed Red
-- 🔋 **Background Foreground Service**: Continues tracking speed and updating display even when the screen is off or app is minimized.
-- 🔄 **Auto Reconnect Engine**: Automatic exponential backoff re-connection (1s, 2s, 4s, 8s, up to 30s) when Bluetooth signal drops.
-- 🔍 **Bluetooth Inspector**: Real-time diagnostic tool for scanning SDP UUIDs, BLE GATT Services/Characteristics, MTU size, and sending manual HEX packets.
-- 📋 **Debug Log Manager**: Anonymized logging with copy, share, and export functions.
-- 🧪 **Demo Simulation Mode**: Test UI and display rendering offline from 0 to 120 km/h without leaving your desk.
+## ฟีเจอร์หลักใน PHASE 1 (Bluetooth Inspector & Packet Tester)
 
-## Architecture
+1. **Bluetooth Inspector Screen**:
+   - แสดงรายการอุปกรณ์ Bluetooth ที่จับคู่ไว้ (Paired Devices)
+   - แสดงชื่อ, MAC address, Device Type (BLE / Classic / Dual Mode) และ Bond State
+   - ตรวจสอบและค้นหา GATT Services & Characteristics (สำหรับ BLE) พร้อมแสดง Property (`READ`, `WRITE`, `WRITE_NO_RESPONSE`, `NOTIFY`, `INDICATE`)
+   - ตรวจสอบ SDP UUIDs และเปิด RFCOMM Socket (สำหรับ Bluetooth Classic)
+   - มีระบบ Auto-Reconnect แบบ Exponential Backoff เมื่อการเชื่อมต่อหลุด
 
-- **Language**: 100% Kotlin
-- **UI Framework**: Jetpack Compose + Material 3
-- **Architecture**: MVVM + Repository Pattern
-- **Async & Concurrency**: Kotlin Coroutines + StateFlow + Mutex
-- **Location API**: Google Play Services `FusedLocationProviderClient`
-- **Storage**: AndroidX DataStore Preferences
+2. **HEX Packet Sender**:
+   - ช่องทดลองส่ง Packet แบบ HEX ตรงไปยังกระเป๋า
+   - จัดคิวการเขียน GATT (Write Queue) รอ Callback ก่อนส่ง Chunk ถัดไป
+   - รองรับ MTU Negotiation (ขอสูงสุด 512 bytes)
 
-## Quick Setup & Installation
+3. **Display Test (16x16 Pixel Preview)**:
+   - แสดงผล Pixel Art แบบ Live Preview ขนาด 16×16 ในแอป
+   - ปุ่มกดทดสอบภาพพิกเซล ได้แก่:
+     - Solid Red
+     - Solid Green
+     - Solid Blue
+     - Arrow Left (ลูกศรซ้าย)
+     - Arrow Right (ลูกศรขวา)
+     - Arrow Straight (ตรงไป)
+     - U-Turn (กลับรถ)
+     - Destination (ถึงจุดหมาย)
+     - Clear Screen (ล้างหน้าจอ)
 
-### Requirements
-- Android 8.0 (API Level 26) or higher.
-- Bluetooth & GPS Location permissions enabled.
+4. **Live Log Viewer & Log Export**:
+   - แสดง Log พร้อม Timestamp, UUID, Packet HEX, Connection State และ Error
+   - ปุ่ม **Copy Logs** (คัดลอกลง Clipboard) และ **Export Logs** (แชร์ไฟล์/ข้อความ Log)
 
-### Building from Source
-```bash
-git clone https://github.com/noparatcyberpg/divoom-speed-backpack-android.git
-cd divoom-speed-backpack-android
-./gradlew testDebugUnitTest
-./gradlew assembleDebug
+5. **Protocol Capture Guide & Python Analysis Tool**:
+   - หน้าคู่มือแนะนำการเก็บ Bluetooth HCI Snoop Log
+   - Python Script (`tools/analyze_hci_log.py`) สำหรับเปรียบเทียบ Packet สีแดง สีเขียว ลูกศรซ้าย และลูกศรขวา
+
+---
+
+## โครงสร้างโปรเจกต์ (Project Tree)
+
 ```
-The compiled APK will be located at:
-`app/build/outputs/apk/debug/app-debug.apk`
+divoom/
+├── app/
+│   ├── build.gradle.kts
+│   ├── proguard-rules.pro
+│   └── src/
+│       └── main/
+│           ├── AndroidManifest.xml
+│           └── java/com/divoom/navigationarrow/
+│               ├── MainActivity.kt
+│               ├── DivoomApp.kt
+│               ├── domain/
+│               │   ├── model/
+│               │   │   ├── ConnectionState.kt
+│               │   │   ├── LogEntry.kt
+│               │   │   ├── PixelBitmap.kt
+│               │   │   └── TestPatterns.kt
+│               │   ├── transport/
+│               │   │   ├── DivoomTransport.kt
+│               │   │   ├── BleDivoomTransport.kt
+│               │   │   └── ClassicDivoomTransport.kt
+│               │   └── protocol/
+│               │       ├── DivoomDisplayProtocol.kt
+│               │       ├── UnknownDivoomProtocol.kt
+│               │       └── VerifiedDivoomBackpackProtocol.kt
+│               ├── viewmodel/
+│               │   └── MainViewModel.kt
+│               └── ui/
+│                   ├── theme/ (Color.kt, Theme.kt, Type.kt)
+│                   ├── components/ (PixelCanvas.kt, LogViewer.kt, DeviceItem.kt)
+│                   └── screens/ (BluetoothInspectorScreen.kt, HexSenderScreen.kt, DisplayTestScreen.kt, ProtocolCaptureGuideScreen.kt)
+├── tools/
+│   └── analyze_hci_log.py
+├── settings.gradle.kts
+├── build.gradle.kts
+├── gradle.properties
+├── protocol-analysis.md
+├── troubleshooting.md
+└── README.md
+```
 
-## Disclaimer
+---
 
-This application uses unofficial community protocols for Divoom devices. See [PROTOCOL_NOTES.md](PROTOCOL_NOTES.md) for detailed packet specifications.
+## ขั้นตอนการเปิดโปรเจกต์และ Build APK
 
-## License
+### Requirements:
+- Android Studio Hedgehog (2023.1.1) ขึ้นไป
+- JDK 17
+- Android SDK 34 (minSdk 26)
 
-This project is licensed under the [MIT License](LICENSE).
+### ขั้นตอนเปิดโปรเจกต์ใน Android Studio:
+1. เปิดโปรเจกต์ในโฟลเดอร์ `divoom`
+2. รอ Android Studio Sync Gradle Dependencies
+3. เมนู `Build` -> `Build Bundle(s) / APK(s)` -> `Build APK(s)`
+4. ไฟล์ APK จะถูกสร้างไว้ที่:
+   `app/build/outputs/apk/debug/app-debug.apk`
+
+---
+
+## ขั้นตอนการทดสอบกับกระเป๋า Divoom จริง
+
+> [!WARNING]
+> ก่อนเริ่มทดสอบ ให้สั่ง **Force Stop (บังคับหยุด)** แอป Divoom Official บนมือถือก่อนเสมอ เพื่อป้องกันไม่ให้แอปหลักแย่งการเชื่อมต่อ Bluetooth
+
+1. เปิดแอป **Divoom Navigation Arrow**
+2. ในหน้า **Bluetooth Inspector**:
+   - เลือกโหมด **BLE (GATT)** หรือ **Bluetooth Classic (RFCOMM)**
+   - กดปุ่ม **Connect** ตรงชื่อกระเป๋า Divoom ของคุณ
+3. ในหน้า **Display Test**:
+   - ตรวจสอบว่า Protocol Toggle อยู่ที่ **Verified Divoom Backpack Protocol**
+   - กดปุ่ม **Arrow Left** หรือ **Arrow Right**
+   - จอพิกเซลที่กระเป๋า Divoom จะแสดงผลลูกศรตามที่เลือก
+4. หากพบปัญหา สามารถกด **Copy Logs** หรือ **Export Logs** เพื่อนำ Log ไปวิเคราะห์เพิ่มเติม
